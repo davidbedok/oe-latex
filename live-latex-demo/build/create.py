@@ -3,6 +3,7 @@ import mysql.connector
 from mysql.connector import errorcode
 import codecs
 import collections
+import sys
 
 def loadLocalizationMessages( fileName ):
 	with open(fileName) as f:
@@ -76,9 +77,13 @@ def convertFileUTF8toLatin2( destination, sourceFileName, targetFileName ):
 	target.write(unicode(source.read(), sourceEncoding).encode(targetEncoding))
 				
 destination = './../generated/'
-sourcePath = './../outer/source/'		
+sourcePath = './../outer/source/'				
 		
-connection = getDbConnection('localhost', 'root', 'root', 'texdb')	
+dbUser = str(sys.argv[1])
+dbPassword = str(sys.argv[2])
+dbName = str(sys.argv[3])
+		
+connection = getDbConnection('localhost', dbUser, dbPassword, dbName)	
 constants = loadLocalizationMessages(sourcePath + 'locale/hu/messages.ini')
 
 languages = queryLanguages(connection, constants)
