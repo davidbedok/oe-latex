@@ -1,0 +1,11 @@
+\begin{table}[h!]
+	\centering{
+		\begin{tabular}{|c|##valuewidth##|}
+			\hline
+			\textbf{Konstans} & \textbf{Megnevezés} \\ \hline
+##items##
+		\end{tabular}
+	}
+	\caption{##caption##}
+	\label{tab:##tableid##}
+\end{table}

@@ -1,0 +1,135 @@
+\documentclass[a4paper,12pt,onecolumn,oneside,openright,titlepage]{book}
+\usepackage[T1]{fontenc}
+%\usepackage{t1enc}
+\usepackage[latin2]{inputenc}
+\usepackage{lmodern}
+\def\magyarOptions{defaults=hu-min} % prettiest hu-min
+\usepackage[french,magyar]{babel}
+\usepackage{indentfirst}
+\frenchspacing
+\pagenumbering{roman}
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+\setlength{\parskip}{\medskipamount}
+\setlength{\parindent}{25pt}
+\usepackage[pdftex]{graphicx}
+\usepackage{url}
+\usepackage{verbatim}
+\usepackage{anysize}
+\usepackage{amsfonts}
+\usepackage{color}
+\usepackage{listings}
+\usepackage{caption}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{lipsum}
+\usepackage{framed}
+\usepackage{fancyhdr}
+\usepackage{courier}
+\graphicspath{ {images/} }
+\marginsize{3cm}{2cm}{1cm}{1cm}
+\renewcommand{\labelitemi}{$\bullet$}
+\renewcommand{\labelitemii}{$\cdot$}
+\renewcommand{\labelitemiii}{$\diamond$}
+\renewcommand{\labelitemiv}{$\ast$}
+\renewcommand*\lstlistingname{kód}
+\renewcommand*\lstlistlistingname{Kódjegyzék}
+\renewcommand{\footrulewidth}{0.4pt}% default is 0pt
+\newenvironment{customindentpar}[1]%
+{\begin{list}{}%
+         {\setlength{\leftmargin}{#1}}%
+         \item[]%
+}
+{\end{list}}
+
+\fancypagestyle{qGeneralPageStyle}{%	
+	\fancyhead[LE,RO]{\footnotesize{\slshape \rightmark}}
+	\fancyhead[LO,RE]{\footnotesize{\slshape \leftmark}}
+	\fancyfoot[L]{\footnotesize{TestLine}}
+	\fancyfoot[C]{\footnotesize{\arabic{page}}}
+	\fancyfoot[R]{\footnotesize{Adatbázis schema definíció}}
+	\renewcommand{\headrulewidth}{0.4pt}
+}
+\fancypagestyle{qSpecialPageStyle}{%
+	\fancyhead{}
+	\renewcommand{\headrulewidth}{0pt}
+}
+
+\input{configuration.tex}
+
+\begin{document}
+\definecolor{customgray}{rgb}{0.9,0.9,0.9} 
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+\definecolor{bluekeywords}{rgb}{0,0,1}
+\definecolor{greencomments}{rgb}{0,0.5,0}
+\definecolor{redstrings}{rgb}{0.64,0.08,0.08}
+\definecolor{xmlcomments}{rgb}{0.5,0.5,0.5}
+\definecolor{types}{rgb}{0.17,0.57,0.68}
+\definecolor{shadecolor}{rgb}{0.9,0.9,0.6}
+\lstset{language=SQL,
+captionpos=b,
+numbers=left,
+numberstyle=\tiny,
+numbersep=5pt,
+frame=lines,
+showspaces=false,
+showtabs=false,
+tabsize=2,
+breaklines=true,
+showstringspaces=false,
+breakatwhitespace=true,
+escapeinside={(*@}{@*)},
+commentstyle=\color{greencomments},
+morekeywords={AUTO_INCREMENT, ENGINE, CHARSET},
+keywordstyle=\color{bluekeywords},
+stringstyle=\color{redstrings},
+basicstyle=\scriptsize,
+framesep=8pt
+}
+
+\rmfamily
+\hypersetup{pageanchor=false}
+\begin{titlepage}
+	\begin{flushleft}
+		\includegraphics[width=0.15\textwidth]{images/obuda-university-logo.png}
+		
+		{Óbudai Egyetem\\ Neumann János Szakkollégium}
+	\end{flushleft}
+	\vspace{-12pt}
+	\rule{\linewidth}{2pt}
+	
+	\vspace{90pt}
+	
+	\begin{center}
+		\vspace{10pt}
+		\includegraphics[width=0.25\textwidth]{images/fullstackfejlesztes-logo.png}
+		\vspace{20pt}
+		
+		{\LARGE\textbf{Élõ LaTeX dokumentáció készítése Python segítségével}}
+	\end{center}
+	
+	\vfill
+	
+	\begin{center}
+		{\Large\textbf{v1.0.0}}
+		\vspace{18pt}
+		\\
+		{\large 2017. április 11.}
+				
+		\includegraphics[width=0.15\textwidth]{images/emmi-logo.png}
+	\end{center}
+	
+\end{titlepage}
+\hypersetup{pageanchor=true}
+
+\chapter{Lokalizáció}
+\label{chap:localization}
+
+\lstinputlisting[caption={Nyelv},label={lst:language}]{\SCHEMADIRECTORY/language.sql}
+
+\lipsum[1]
+
+\input{generated/language.latin2.tex}
+
+\end{document}

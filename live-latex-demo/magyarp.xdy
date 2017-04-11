@@ -1,0 +1,441 @@
+;
+; magyarp.xdy -- a xindy style for the Hungarian language
+; by pts@fazekas.hu at Fri Jan  2 20:58:39 CET 2004
+;
+; This file is very far from complete (early alpha), and may even fail. Please
+; use the old magyar1.xdy instead, for a while.
+;
+; Dat: the result of the merge-rule mapping is used as the equality citerium
+;      which views both keywords as equal.
+; Dat: ~b comes before all chars, ~e comes after them
+;
+;; Define all attributes appearing in your document. Your attributes
+;; are all encapsulators you use in your \index commands following the
+;; vertical bar sign `|'. For example `foo' is the attribute in the
+;; command \index{...|foo}. Here you specify the set of attributes
+;; that appear in your document, the order in which they appear in the
+;; index and which one superdes the other.
+;;
+;; Example: a) (define-attibutes (("default") ("bf") ("it")))
+;;          b) (define-attibutes (("bf" "default")))
+;;
+
+;; !! c{}cs -> ccs and not cscs
+;; !! define a letter-group for symbols and numbers
+;; !! :capitalize \"o
+
+(define-attributes (("default") ("definition") ("textbf" "bf") ("textit" "it")))
+(markup-locref :open "\textbf{" :close "}" :attr "definition")
+
+;; The most frequently used cross reference class "see". Add more, if
+;; necessary.
+
+; !! what's the difference between define-crossref and define-attr?
+(define-crossref-class "see")
+(markup-crossref-list :open "\see{" :close "}{}" :class "see")
+
+;; The description of the location-classes.
+;; Add more location classes as needed.
+
+(define-location-class "arabic-page-numbers" ("arabic-numbers"))
+(define-location-class  "roman-page-numbers" ("roman-numbers-lowercase"))
+(define-location-class  "Roman-page-numbers" ("roman-numbers-uppercase"))
+(define-location-class  "alpha-page-numbers" ("alpha"))
+(define-location-class  "Alpha-page-numbers" ("ALPHA"))
+
+;; In makeindex: page_precedence <string>  "rnaRA"
+;; List all location classes appearing in your document.
+
+; !! two styles of vowel ordering
+
+; Dat: husort.pl has only roman-page-numbers = Roman-page-numbers <
+;      arabic-page-numbers
+(define-location-class-order ("roman-page-numbers"
+			      "arabic-page-numbers"
+			      "alpha-page-numbers"
+			      "Roman-page-numbers"
+			      "Alpha-page-numbers" ))
+
+; !! \lowtilde-t (\~{}) nem tudja xindy rendezni
+; vvv Ripped from husort.pl
+(markup-index :open  "\begin{theindex}~n~n\makeatletter~n\def\PtsGobble#1{}% tokenizer helper~n\expandafter\ifx\csname IdxPages\endcsname\relax \let\IdxPages\enskip \fi~n\expandafter\ifx\csname IdxGroupHead\endcsname\relax~n  \def\IdxGroupHead#1{\par\smallskip\noindent\hfil{\bfseries#1}\par\nopagebreak\indexspace}~n\fi~n\expandafter\ifx\csname lowtilde\endcsname\relax% only if undefined~n  \def\lowtilde{{%~n    \dimen0=1ex \font\f=cmex10 at 2.32261061433051\dimen0 \f%~n    \lower 0.9ex\hbox{e}%~n  }}%~n\fi%"
+	      :close "~n~n\end{theindex}~n~n%%% Local Variables:~n%%% mode: latex~n%%% TeX-master: ~"master~"~n%%% End:~n"
+	      :tree)
+
+;; These specifiers are not directly supported via a command-line
+;; switch as in makeindex. Add the appropriate markup-commands into
+;; the preamble.
+
+;; setpage_prefix <string>  "~n  \setcounter{page}{"
+;; setpage_suffix <string>  "}~n"
+
+;; group_skip <string>      "~n~n  \indexspace~n"
+
+(markup-letter-group-list :sep "~n~n  \indexspace~n")
+
+;; The indexentries (item_<..> specifiers)
+
+(markup-indexentry :open "~n  \item "           :depth 0)
+(markup-indexentry :open "~n    \subitem "      :depth 1)
+(markup-indexentry :open "~n      \subsubitem " :depth 2)
+
+;; Location-references
+
+;; delim_0 <string>         ", "
+;; delim_1 <string>         ", "
+;; delim_2 <string>         ", "
+
+(markup-locclass-list :open "\IdxPages " :sep ", ")
+
+;; delim_n <string>         ", "
+
+(markup-locref-list   :sep ", ")
+
+;; delim_r <string>         "--"
+
+(markup-range :sep "--")
+
+;; Ignore default group
+(markup-letter-group :open-head "~n% " :close-head "" :group "default")
+
+;; Boldface for letter groups
+(markup-letter-group :open-head "~n \IdxGroupHead{" :close-head "}" :capitalize)
+
+;
+; xindy sorts as follows:
+; 
+; 1. merge-rule's are applied
+; 2. words are grouped into letter groups (using :prefixes as :string, on the
+;    result of merge-rule)
+; 3. :run 0 of sort-rules is run inside each letter groups
+; 4. whoever is found equal in :run 0, are compared according to :run 1 etc.
+; 5. whoever is found equal, are compared as strings
+;
+
+;; Here follow all letter-groups. The short-cut notation is used here.
+
+(define-letter-groups
+    ("b" "c" "d"  "f" "g" "h" "j" "k" "l" "m"
+     "n" "p" "q" "r" "s" "t" "v" "w" "x" "y" "z" ))
+
+; Dat: no Hungarian words starts by Ccs etc.
+(define-letter-group "cs"  :after "c"  :before "d" :prefixes ("cs"))
+(define-letter-group "dz"  :after "d"  :before "f" :prefixes ("dz"))
+(define-letter-group "dzs" :after "dz" :before "f" :prefixes ("dzs"))
+(define-letter-group "gy"  :after "g"  :before "h" :prefixes ("g~e9")) ;!! :run 0
+(define-letter-group "ly"  :after "l"  :before "m" :prefixes ("ly"))
+(define-letter-group "ny"  :after "n"  :before "p" :prefixes ("ny"))
+(define-letter-group "sz"  :after "s"  :before "t" :prefixes ("sz"))
+(define-letter-group "ty"  :after "t"  :before "v" :prefixes ("ty"))
+(define-letter-group "zs"  :after "z"  :prefixes ("zs"))
+
+; !! prefixes
+; !! what's the prefix of \"a
+(define-letter-group "a, \'a" :before "b" :prefixes ("a") )
+(define-letter-group "e, \'e" :before "f" :after "d" :prefixes ("e") )
+(define-letter-group "i, \'i" :before "j" :after "h" :prefixes ("i" ))
+(define-letter-group "o, \'o" :before "p" :after "ny" :prefixes ("o" ))
+(define-letter-group "\~"o, \H o" :before "p" :after "o, \'o" :prefixes ("o~e3" ))
+(define-letter-group "u, \'u" :before "v" :after "ty" :prefixes ("u" ))
+(define-letter-group "\~"u, \H u" :before "v" :after "u, \'u" :prefixes ("u~e3" ))
+
+; Dat: merge-rule's are applied before sort-rule's, neither of them will
+;      be emitted to the .ind file, but the result of merge-rules will be
+;      reflected in the letter-groups
+
+;; BLANKS1 [[:blank:]]+
+;; BLANKS0 [[:blank:]]*
+
+; Dat: typical \indexentry contains this when \usepackage[latin2]{inputenc}
+; is active:
+;   Kov\'acs P\'al ford\IeC {\'\i }t\'o
+;   Kov\'acs P\'al k\"olt\H o
+
+; We don't expect chars >126 on input, because LaTeX t1enc.sty doesn't emit
+; them. But in case input doesn't come from LaTeX directly, here
+; is a mapping from latin2 -> TeX accents. This is similar to
+; insolatin2m-tex.sty, but it is exactly the reverse.
+(merge-rule "~~" "~~"  :string :again) ;\nobreakspace
+(merge-rule "¡" "\k A" :string :again)
+(merge-rule "¢" "\u{}" :string :again)
+(merge-rule "£" "\L "  :string :again)
+(merge-rule "¤" "\textcurrency " :string :again) ;in TS1 enc, not in OT1 or T1
+(merge-rule "¥" "\v L" :string :again)
+(merge-rule "¦" "\'S"  :string :again)
+(merge-rule "§" "\S "  :string :again)
+;(merge-rule "¨" "\~"{}":string :again);!! Possible read-error due to ill-formed string "\\"{}" NIL
+(merge-rule "©" "\v S" :string :again)
+(merge-rule "ª" "\c S" :string :again)
+(merge-rule "«" "\v T" :string :again)
+(merge-rule "¬" "\'Z"  :string :again)
+(merge-rule "­" "\-"   :string :again)
+(merge-rule "®" "\v Z" :string :again)
+(merge-rule "¯" "\.Z"  :string :again)
+(merge-rule "°" "\r{}" :string :again)
+(merge-rule "±" "\k a" :string :again)
+(merge-rule "²" "\k\ " :string :again)
+(merge-rule "³" "\l "  :string :again)
+(merge-rule "´" "\'{}" :string :again)
+(merge-rule "µ" "\v l" :string :again)
+(merge-rule "¶" "\'s"  :string :again)
+(merge-rule "·" "\v{}" :string :again)
+(merge-rule "¸" "\c\ " :string :again)
+(merge-rule "¹" "\v s" :string :again)
+(merge-rule "º" "\c s" :string :again)
+(merge-rule "»" "\v t" :string :again)
+(merge-rule "¼" "\'z"  :string :again)
+(merge-rule "½" "\H{}" :string :again)
+(merge-rule "¾" "\v z" :string :again)
+(merge-rule "¿" "\.z"  :string :again)
+(merge-rule "À" "\'R"  :string :again)
+(merge-rule "Á" "\'A"  :string :again)
+(merge-rule "Â" "\^A"  :string :again)
+(merge-rule "Ã" "\u A" :string :again)
+(merge-rule "Ä" "\~"A" :string :again)
+(merge-rule "Å" "\'L"  :string :again)
+(merge-rule "Æ" "\'C"  :string :again)
+(merge-rule "Ç" "\c C" :string :again)
+(merge-rule "È" "\v C" :string :again)
+(merge-rule "É" "\'E"  :string :again)
+(merge-rule "Ê" "\k E" :string :again)
+(merge-rule "Ë" "\~"E" :string :again)
+(merge-rule "Ì" "\v E" :string :again)
+(merge-rule "Í" "\'I"  :string :again)
+(merge-rule "Î" "\^I"  :string :again)
+(merge-rule "Ï" "\v D" :string :again)
+(merge-rule "Ð" "\DH " :string :again)
+(merge-rule "Ñ" "\'N"  :string :again)
+(merge-rule "Ò" "\v N" :string :again)
+(merge-rule "Ó" "\'O"  :string :again)
+(merge-rule "Ô" "\^O"  :string :again)
+(merge-rule "Õ" "\H O" :string :again)
+(merge-rule "Ö" "\~"O" :string :again)
+(merge-rule "×" "\ensuremath\times " :string :again)
+(merge-rule "Ø" "\v R" :string :again)
+(merge-rule "Ù" "\r U" :string :again)
+(merge-rule "Ú" "\'U"  :string :again)
+(merge-rule "Û" "\H U" :string :again)
+(merge-rule "Ü" "\~"U" :string :again)
+(merge-rule "Ý" "\'Y"  :string :again)
+(merge-rule "Þ" "\c T" :string :again)
+(merge-rule "ß" "\ss " :string :again)
+(merge-rule "à" "\'r"  :string :again)
+(merge-rule "á" "\'a"  :string :again)
+(merge-rule "â" "\^a"  :string :again)
+(merge-rule "ã" "\u a" :string :again)
+(merge-rule "ä" "\~"a" :string :again)
+(merge-rule "å" "\'l"  :string :again)
+(merge-rule "æ" "\'c"  :string :again)
+(merge-rule "ç" "\c c" :string :again)
+(merge-rule "è" "\v c" :string :again)
+(merge-rule "é" "\'e"  :string :again)
+(merge-rule "ê" "\k e" :string :again)
+(merge-rule "ë" "\~"e" :string :again)
+(merge-rule "ì" "\v e" :string :again)
+(merge-rule "í" "\'\i" :string :again)
+(merge-rule "î" "\^\i" :string :again)
+(merge-rule "ï" "\v d" :string :again)
+(merge-rule "ð" "\dh " :string :again)
+(merge-rule "ñ" "\'n"  :string :again)
+(merge-rule "ò" "\v n" :string :again)
+(merge-rule "ó" "\'o"  :string :again)
+(merge-rule "ô" "\^o"  :string :again)
+(merge-rule "õ" "\H o" :string :again)
+(merge-rule "ö" "\~"o" :string :again)
+(merge-rule "÷" "\ensuremath\div " :string :again)
+(merge-rule "ø" "\v r" :string :again)
+(merge-rule "ù" "\r u" :string :again)
+(merge-rule "ú" "\'u"  :string :again)
+(merge-rule "û" "\H u" :string :again)
+(merge-rule "ü" "\~"u" :string :again)
+(merge-rule "ý" "\'y"  :string :again)
+(merge-rule "þ" "\c t" :string :again)
+(merge-rule "ÿ" "\.{}" :string :again)
+
+; Dat: we use ` ', not `[[:blank:]]', because TeX always emits a space.
+; Imp: "\ss" at end of string etc.
+
+; "\o{}" -> "\o "
+(merge-rule "(\\[A-Za-z]+) +\{\}" "\1 " :eregexp :again)
+; remove empty groups
+(merge-rule "\{\}" "" :string :again)
+; \IeC{\'\i } -> \'i
+(merge-rule "\\IeC * \{(\\[^\\}]+)\\([ij]) *\}" "\1\2" :eregexp :again)
+; \'\i -> \'i
+(merge-rule "(\\[`'^~~=.~"])\\([ij])" "\1\2" :eregexp :again)
+; \H\i -> \H i
+(merge-rule "(\\[cuvHdbtrk]) *\\([ij])" "\1 \2" :eregexp :again)
+; \H{u} -> \H u
+(merge-rule "(\\[cuvHdbtrk]) *\{([A-Za-z0-9])\}" "\1 \2" :eregexp :again)
+; \'{e} -> \'e
+(merge-rule "(\\[`'^~~=.~"]) *\{([A-Za-z0-9])\}" "\1\2" :eregexp :again)
+; {\H u} -> \H u (BibTeX-style)
+(merge-rule "\{(\\[cuvHdbtrk]) +([A-Za-z0-9])\}" "\1 \2" :eregexp :again)
+; {\'e} -> \'e (BibTeX-style)
+(merge-rule "\{(\\[`'^~~=.~"])([A-Za-z0-9])\}" "\1\2" :eregexp :again)
+
+; order of accents: Hungarians (\', \" and \H come first, then others)
+(merge-rule  "\\'([aeiouAEIOU])" "\1~e2" :eregexp :again)
+(merge-rule "\\~"([ouOU])"       "\1~e3" :eregexp :again)
+(merge-rule "\\H ([ouOU])"       "\1~e4" :eregexp :again)
+(merge-rule  "\\'([a-zA-Z0-9])"  "\1~e5" :eregexp :again)
+(merge-rule "\\H ([a-zA-Z0-9])"  "\1~e6" :eregexp :again)
+(merge-rule "\\~"([a-zA-Z0-9])"  "\1~e7" :eregexp :again) ;for german \"a
+(merge-rule "\\([`^=.~~])([a-zA-Z0-9])" "\2~e\1" :eregexp :again)
+(merge-rule "\\([cuvdbtrk]) +([a-zA-Z0-9])" "\2~e\1" :eregexp :again)
+
+; Dat: this must be before "cs"
+; Dat: this defines sort-rule's
+(define-rule-set "ccs" :rules (
+  ;; exceptions
+  ("type" "type" :string :again)
+  ("ttype" "ttype" :string :again)
+  ("family" "family"  :string :again)
+  ("élcsorozat" "élcsorozat" :string :again)
+  ;; Short double digraphs are sorted as they would be normal double digraphs
+  ("ccs" "cscs" :string :again)
+  ("ddz" "dzdz" :string :again)
+  ("ddzs" "dzsdzs" :string :again)
+  ("ggy" "gygy" :string :again)
+  ("lly" "lyly" :string :again)
+  ("nny" "nyny" :string :again)
+  ("ssz" "szsz" :string :again)
+  ("tty" "tyty" :string :again)
+  ("zzs" "zszs" :string :again)
+  ("CCS" "CSCS" :string :again)
+  ("DDZ" "DZDZ" :string :again)
+  ("DDZS" "DZSDZS" :string :again)
+  ("GGY" "GYGY" :string :again)
+  ("LLY" "LYLY" :string :again)
+  ("NNY" "NYNY" :string :again)
+  ("SSZ" "SZSZ" :string :again)
+  ("TTY" "TYTY" :string :again)
+  ("ZZS" "ZSZS" :string :again)
+))
+
+(define-rule-set "cs" :rules (
+  ("cs"  "c~e9" :string :again)
+  ("dz"  "d~e9" :string :again)
+  ("dzs" "d~e9~e9" :string :again)
+  ("gy"  "g~e9" :string :again)
+  ("ly"  "l~e9" :string :again)
+  ("ny"  "n~e9" :string :again)
+  ("sz"  "s~e9" :string :again)
+  ("ty"  "t~e9" :string :again)
+  ("zs"  "z~e9" :string :again)
+  ("CS"  "C~e9" :string :again)
+  ("DZ"  "D~e9" :string :again)
+  ("DZS" "D~e9~e9" :string :again)
+  ("GY"  "G~e9" :string :again)
+  ("LY"  "L~e9" :string :again)
+  ("NY"  "N~e9" :string :again)
+  ("SZ"  "S~e9" :string :again)
+  ("TY"  "T~e9" :string :again)
+  ("ZS"  "Z~e9" :string :again)
+))
+
+(define-rule-set "without-accents" :rules (
+  ("~e2" "" :string :again)
+  ("~e4" "~e3" :string :again)
+  ("~e1" "~e0" :string :again)
+  ("~e[5-8`^=.~~cuvdbtrk]" "~e5" :eregexp :again)
+  ("~e[5-8`^=.~~cuvdbtrk]" "~e5" :eregexp :again)
+))
+
+; !! before without-accents
+(define-rule-set "to-latin26" :rules (
+  ("\oe " "oe" :string :again)
+  ("\OE " "OE" :string :again)
+  ("\ae " "ae" :string :again)
+  ("\AE " "AE" :string :again)
+  ("\aa " "a"  :string :again)
+  ("\AA " "A"  :string :again)
+  ("\o "  "o"  :string :again)
+  ("\O "  "O"  :string :again)
+  ("\l "  "l"  :string :again)
+  ("\L "  "L"  :string :again)
+  ("\i "  "I"  :string :again)
+  ("\j "  "J"  :string :again)
+  ("\th " "th" :string :again)
+  ("\TH " "TH" :string :again)
+  ("\dh " "dh" :string :again)
+  ("\DH " "DH" :string :again)
+  ("\dj " "dj" :string :again)
+  ("\DJ " "DJ" :string :again)
+  ("\nh " "ng" :string :again)
+  ("\NG " "NG" :string :again)
+  ("\ss " "ss" :string :again)
+  ("\SS " "SS" :string :again)
+))
+
+(define-rule-set "to-lowercase" :rules (
+  ("A" "a" :string :again)
+  ("B" "b" :string :again)
+  ("C" "c" :string :again)
+  ("D" "d" :string :again)
+  ("E" "e" :string :again)
+  ("F" "f" :string :again)
+  ("G" "g" :string :again)
+  ("H" "h" :string :again)
+  ("I" "i" :string :again)
+  ("J" "j" :string :again)
+  ("K" "k" :string :again)
+  ("L" "l" :string :again)
+  ("M" "m" :string :again)
+  ("N" "n" :string :again)
+  ("O" "o" :string :again)
+  ("P" "p" :string :again)
+  ("Q" "q" :string :again)
+  ("R" "r" :string :again)
+  ("S" "s" :string :again)
+  ("T" "t" :string :again)
+  ("U" "u" :string :again)
+  ("V" "u" :string :again)
+  ("W" "w" :string :again)
+  ("X" "x" :string :again)
+  ("Y" "y" :string :again)
+  ("Z" "z" :string :again)
+))
+
+;(use-rule-set :run 0 :rule-set ("to-lowercase" "to-latin26" "without-accents"))
+(use-rule-set :run 0 :rule-set ("to-lowercase" "to-latin26" "ccs" "cs" "without-accents"))
+(use-rule-set :run 1 :rule-set ("to-lowercase" "to-latin26" "ccs" "cs"))
+(use-rule-set :run 2 :rule-set ("to-lowercase"))
+; Dat :run 3 is performed without sort-rule's
+
+;;
+;; The sort-rules map all letters to their lowercase counterpart.
+;;
+
+; !! \see{bat, at} -- husort.pl doesn't emit warning
+
+; !! (define-rule-set --> sort-rule
+; !! (define-sort-rule-orientations
+
+; (define-rule-set "foo1" :inherit-from ("bar" "baz") :rules ("Á" "á" :string :again))
+
+; !! Dat: :again specifies to apply the rule infinite times
+
+; (use-rule-set :run 0 :rule-set ("foo1" "foo2"))
+
+; !! important space and comma { }, {,}
+; ("\{ *(.*)\} *" "\1~b" :again)
+
+; vvv !! merge-rule applied before sort-rule, doesn't get into the .ind file
+
+; !! no \indexpace before \IdxGroupHead??
+
+; !!WARNING: location-reference "I" did match multiple location-classes! (taking first one)
+; !!WARNING: location-reference "V" did match multiple location-classes! (taking first one)
+; !!WARNING: location-reference "X" did match multiple location-classes! (taking first one)
+
+;; The Input Style Specifiers of makeindex cannot de defined in a
+;; `xindy' style file. Use an appropriate version of the program
+;; `tex2xindy' which should be included with this distribution.
+;;
+;; Since `xindy' uses a different specification language than
+;; makeindex and some of the command-line options of makeindex are now
+;; only available as style-file commands, this file can only serve as
+;; a template that produces the default-markup of makeindex. However,
+;; it may be used as a starting point for further modification and
+;; specialization.
